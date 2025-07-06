@@ -23,14 +23,30 @@ jobs:
         run: |
           # Install necessary tools
           sudo apt-get install wget apt-transport-https gnupg lsb-release -y
-          
+
           # Add Trivy GPG key and repo
           wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
           echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
-          
+
           # Update apt and install Trivy
           sudo apt-get update
           sudo apt-get install -y trivy
-          
+
           # Run Trivy scan
           trivy fs .
+
+      - name: Docker build and push
+        run: |
+          # Build the Docker image with build arg
+          docker build --build-arg TMDB_V3_API_KEY=093ad5551bdda47c4bd2f2ec4c6e3d6e -t netflix .
+
+          # Tag the image
+          docker tag netflix king3157/netflix:latest
+
+          # Login to Docker Hub
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+
+          # Push the image
+          docker push king3157/netflix:latest
+        env:
+          DOCKER_CLI_ACI: 1
