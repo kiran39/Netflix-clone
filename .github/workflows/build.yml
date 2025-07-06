@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build-analyse-scan:
+  build-analyze-scan:
     name: Build
     runs-on: ubuntu-latest
     steps:
@@ -22,16 +22,15 @@ jobs:
       - name: Install Trivy
         run: |
           # Install necessary tools
-          apt-get update
-          apt-get install -y wget apt-transport-https gnupg lsb-release
+          sudo apt-get install wget apt-transport-https gnupg lsb-release -y
           
           # Add Trivy GPG key and repo
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor -o /usr/share/keyrings/trivy.gpg
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" > /etc/apt/sources.list.d/trivy.list
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
           
-          # Install Trivy
-          apt-get update
-          apt-get install -y trivy
-
-      - name: Run Trivy Scan
-        run: trivy fs .
+          # Update apt and install Trivy
+          sudo apt-get update
+          sudo apt-get install -y trivy
+          
+          # Run Trivy scan
+          trivy fs .
